@@ -24,7 +24,7 @@ public class Client {
     private final int messaging_rate;
     private int sent_count;
     private int received_count;
-    private long start_time;
+    private long interval_start_time;
 
     public Client(String host, int port, int rate) {
         this.server_port = port;
@@ -32,14 +32,14 @@ public class Client {
         try{
             this.server_host = InetAddress.getByName(host);
         } catch(UnknownHostException e) {
-            System.out.println("[client] ERROR: could not resolve host, exiting");
+            System.out.println("[client ~ main] ERROR: could not resolve host, exiting");
             e.printStackTrace();
             System.exit(1);
         }
         try {
             this.socket = new Socket(server_host, server_port);
         } catch (IOException e) {
-            System.out.println("[client] ERROR: could not open socket to server, exiting");
+            System.out.println("[client ~ main] ERROR: could not open socket to server, exiting");
             e.printStackTrace();
             System.exit(1);
         }
@@ -49,19 +49,23 @@ public class Client {
     }
 
     private void startReceiver() {
-        System.out.println("[client] starting receiver thread");
+        System.out.println("[client ~ main] starting receiver thread");
         this.receiver.start();
     }
 
     private void startSender() {
-        System.out.println("[client] starting sender thread");
+        System.out.println("[client ~ main] starting sender thread");
         this.sender.start();
     }
 
     private void sendPayloads(int count) {
-        this.start_time = System.nanoTime();
-        System.out.printf("[client] sending %d payloads\n", count);
+        System.out.printf("[client ~ main] sending %d payloads\n", count);
+        this.interval_start_time = System.nanoTime();
         for(int i = 0; i < count; i++) {
+            if(System.nanoTime() - this.interval_start_time >= 2e10) {
+                this.interval_start_time = System.nanoTime();
+                printStats();
+            }
             byte[] rand_bytes = RandomBytes.randBytes();
             String hash = Hash.SHA1FromBytes(rand_bytes);
             addHash(hash);
@@ -72,22 +76,28 @@ public class Client {
                 e.printStackTrace();
             }
         }
-        sender.close();
     }
 
     public synchronized boolean addHash(String hash) {
+        sent_count++;
         return hashList.add(hash);
     }
 
     public synchronized boolean removeHash(String hash) {
+        received_count++;
         return hashList.add(hash);
     }
 
-    public void cleanUp() {
+    private void printStats() {
+        System.out.printf("[%f] Total Sent Count: %d, Total Received Count: %d\n",
+            System.nanoTime(), this.sent_count, this.received_count);
+    }
+
+    private void cleanUp() {
         try{
             this.socket.close();
         } catch(IOException e) {
-            System.out.println("[client] failed to close socket");
+            System.out.println("[client ~ main] failed to close socket");
         }
     }
 
@@ -124,14 +134,14 @@ public class Client {
     }
     public static void main(String[] args) {
         // Collect params
-        System.out.println("[client] initializing");
+        System.out.println("[client ~ main] initializing");
         checkUsage(args);
         String server_host = parseHost(args);
         int server_port = parsePort(args);
         int messaging_rate = parseRate(args);
-        System.out.printf("[client] starting with server_host = %s, server_port = %d, messaging_rate = %d\n", server_host, server_port, messaging_rate);
+        System.out.printf("[client ~ main] starting with server_host = %s, server_port = %d, messaging_rate = %d\n", server_host, server_port, messaging_rate);
         
-        // Start client operations
+        // Client operations
         Client me = new Client(server_host, server_port, messaging_rate);
         me.startReceiver();
         me.startSender();

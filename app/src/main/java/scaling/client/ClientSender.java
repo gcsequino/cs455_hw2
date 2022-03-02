@@ -6,9 +6,10 @@ import java.net.Socket;
 
 public class ClientSender extends Thread {
     private DataOutputStream output_stream;
-    private boolean finished = false;
+    private Socket socket;
 
     public ClientSender(Socket socket) {
+        this.socket = socket;
         try {
             output_stream = new DataOutputStream(socket.getOutputStream());
         } catch (IOException e) {
@@ -26,13 +27,9 @@ public class ClientSender extends Thread {
         }
     }
 
-    public void close() {
-        this.finished = true;
-    }
-
     @Override
     public void run() {
-        while(!finished);
+        while(socket.isConnected());
     }
     
 }
