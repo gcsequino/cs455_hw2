@@ -6,7 +6,6 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.regex.Pattern;
 
 import scaling.utils.Hash;
 import scaling.utils.RandomBytes;
@@ -103,26 +102,27 @@ public class Client {
 
     private static void checkUsage(String[] args) {
         if(args.length != 3) {
-            System.out.println("[client] invalid usage, expected: Client <server-host> <server_port> <messaging_rate>");
+            System.out.println("[client ~ main] invalid usage, expected: Client <server-host> <server_port> <messaging_rate>");
             System.exit(1);
         }
     }
 
     private static String parseHost(String[] args) {
-        Pattern PATTERN = Pattern.compile(
-        "^(([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.){3}([01]?\\d\\d?|2[0-4]\\d|25[0-5])$");
-        if(PATTERN.matcher(args[0]).matches()) {
-            return args[0];
+        InetAddress host = null;
+        try {
+            host = InetAddress.getByName(args[0]);
+        } catch (UnknownHostException e) {
+            System.out.println("[client ~ main] received invald server_host, exiting");
+            System.exit(1);
         }
-        System.out.println("[client] received invald server_host, exiting");
-        System.exit(1);
+        if(host != null) return host.getHostName();
         return null;
     }
 
     private static int parsePort(String[] args) {
         int port = Integer.parseInt(args[1]);
         if(port < 1024 || port > 65535) {
-            System.out.println("[client] received invalid port, exiting");
+            System.out.println("[client ~ main] received invalid port, exiting");
             System.exit(1);
             return -1;
         }
