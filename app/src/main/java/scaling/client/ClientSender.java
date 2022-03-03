@@ -35,6 +35,7 @@ public class ClientSender extends Thread {
     @Override
     public void run() {
         while(!finished);
+        System.out.println("[client ~ client] shutting down");
     }
     
 }

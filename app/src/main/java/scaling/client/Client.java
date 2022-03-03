@@ -61,10 +61,10 @@ public class Client {
         System.out.printf("[client ~ main] sending %d payloads\n", count);
         this.interval_start_time = System.nanoTime();
         for(int i = 0; i < count; i++) {
-            // if(System.nanoTime() - this.interval_start_time >= 2e10) {
-            //     this.interval_start_time = System.nanoTime();
-            //     printStats();
-            // }
+            if(System.nanoTime() - this.interval_start_time >= 2e10) {
+                this.interval_start_time = System.nanoTime();
+                printStats();
+            }
             byte[] rand_bytes = RandomBytes.randBytes();
             String hash = Hash.SHA1FromBytes(rand_bytes);
             addHash(hash);
@@ -86,12 +86,12 @@ public class Client {
 
     public synchronized boolean removeHash(String hash) {
         received_count++;
-        return hashList.add(hash);
+        return hashList.remove(hash);
     }
 
     private void printStats() {
-        System.out.printf("[%f] Total Sent Count: %d, Total Received Count: %d\n",
-            (long)System.nanoTime(), this.sent_count, this.received_count);
+        System.out.printf("[%d] Total Sent Count: %d, Total Received Count: %d\n",
+            System.nanoTime(), this.sent_count, this.received_count);
     }
 
     private void cleanUp() {
@@ -100,7 +100,7 @@ public class Client {
         } catch(IOException e) {
             System.out.println("[client ~ main] failed to close socket");
         }
-        System.out.println("hashList: " + hashList.toString());
+        System.out.println("[client ~ main] hashList: " + hashList.toString());
     }
 
     private static void checkUsage(String[] args) {
@@ -148,7 +148,8 @@ public class Client {
         Client me = new Client(server_host, server_port, messaging_rate);
         me.startReceiver();
         me.startSender();
-        me.sendPayloads(5);
+        me.sendPayloads(10);
         me.cleanUp();
+        System.out.println("[client ~ main] shutting down");
     }
 }

@@ -32,11 +32,11 @@ public class ClientReceiver extends Thread {
             try {
                 recv_hash = DataInputStream.readUTF(input_stream);
             } catch (IOException e) {
-                System.out.println("[client ~ recv] Failed to read hash from server");
-                e.printStackTrace();
+                break;
             }
 
             if(recv_hash != null) client.removeHash(recv_hash);
         }
+        System.out.println("[client ~ recv] shutting down");
     }
 }

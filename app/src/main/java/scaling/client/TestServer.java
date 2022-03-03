@@ -41,7 +41,7 @@ public class TestServer {
         } catch (IOException e1) {
             e1.printStackTrace();
         }
-        while(socket.isConnected()) {
+        while(socket.isConnected() && !socket.isClosed()) {
             byte[] bytes = new byte[8000];
             try {
                 input_stream.read(bytes);
@@ -50,10 +50,11 @@ public class TestServer {
             }
             String hash = Hash.SHA1FromBytes(bytes);
             System.out.println("Recieved msg, hash: " + hash);
+            hash = null;
             try {
                 output_stream.writeUTF(hash);
             } catch (IOException e) {
-                e.printStackTrace();
+                break;
             }
         }
     }
