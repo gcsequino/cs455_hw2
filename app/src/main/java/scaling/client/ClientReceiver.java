@@ -8,6 +8,7 @@ public class ClientReceiver extends Thread {
     private Client client;
     private DataInputStream input_stream;
     private Socket socket;
+    private boolean finished = false;
 
     public ClientReceiver(Client client, Socket socket) {
         this.socket = socket;
@@ -19,10 +20,14 @@ public class ClientReceiver extends Thread {
             e.printStackTrace();
         }
     }
+
+    public void setFinished() {
+        this.finished = true;
+    }
     
     @Override
     public void run() {
-        while(socket.isConnected()) {
+        while(!finished) {
             String recv_hash = null;
             try {
                 recv_hash = DataInputStream.readUTF(input_stream);

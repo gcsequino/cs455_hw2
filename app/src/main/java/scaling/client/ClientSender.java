@@ -7,6 +7,7 @@ import java.net.Socket;
 public class ClientSender extends Thread {
     private DataOutputStream output_stream;
     private Socket socket;
+    private boolean finished = false;
 
     public ClientSender(Socket socket) {
         this.socket = socket;
@@ -27,9 +28,13 @@ public class ClientSender extends Thread {
         }
     }
 
+    public void setFinished() {
+        this.finished = true;
+    }
+
     @Override
     public void run() {
-        while(socket.isConnected());
+        while(!finished);
     }
     
 }
