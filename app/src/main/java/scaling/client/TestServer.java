@@ -13,6 +13,7 @@ import scaling.utils.Hash;
 public class TestServer {
     public static void main(String[] args) {
         System.out.println("Running test server");
+
         ServerSocket server = null;
         try {
             server = new ServerSocket(6969);
@@ -20,6 +21,7 @@ public class TestServer {
             e.printStackTrace();
             System.exit(1);
         }
+
         Socket socket = null;
         try {
             socket = server.accept();
@@ -27,35 +29,40 @@ public class TestServer {
             e.printStackTrace();
             System.exit(1);
         }
+
         System.out.println("Connected to client");
-        InputStream input_stream = null;
+        DataInputStream input_stream = null;
         try {
-            input_stream = socket.getInputStream();
+            input_stream = new DataInputStream(socket.getInputStream());
         } catch (IOException e) {
             e.printStackTrace();
             System.exit(1);
         }
+
         DataOutputStream output_stream = null;
         try {
             output_stream = new DataOutputStream(socket.getOutputStream());
         } catch (IOException e1) {
             e1.printStackTrace();
+            System.exit(1);
         }
-        while(socket.isConnected() && !socket.isClosed()) {
+
+        while(true) {
             byte[] bytes = new byte[8000];
             try {
-                input_stream.read(bytes);
+                input_stream.readFully(bytes);
             } catch (IOException e) {
                 e.printStackTrace();
             }
             String hash = Hash.SHA1FromBytes(bytes);
             System.out.println("Recieved msg, hash: " + hash);
-            hash = null;
             try {
-                output_stream.writeUTF(hash);
+                if(hash != null) output_stream.writeUTF(hash);
+                else break;
             } catch (IOException e) {
                 break;
             }
+            hash = null;
         }
     }
 }

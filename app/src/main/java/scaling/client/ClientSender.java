@@ -3,39 +3,51 @@ package scaling.client;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.LinkedList;
+import java.util.Queue;
 
 public class ClientSender extends Thread {
     private DataOutputStream output_stream;
-    private Socket socket;
-    private boolean finished = false;
+    private Queue<byte[]> sendQueue;
 
     public ClientSender(Socket socket) {
-        this.socket = socket;
         try {
             output_stream = new DataOutputStream(socket.getOutputStream());
+            sendQueue = new LinkedList<>();
         } catch (IOException e) {
             System.out.println("[client ~ sender] failed to get output stream from socket");
             e.printStackTrace();
         }
     }
 
-    public void send(byte[] bytes) {
-        try {
-            output_stream.write(bytes);
-        } catch (IOException e) {
-            System.out.println("[client ~ sender] failed to send payload");
-            e.printStackTrace();
-        }
+    public void send(byte[] bytes) throws IOException {
+        output_stream.write(bytes);
     }
 
-    public void setFinished() {
-        this.finished = true;
+    public synchronized void addSendQueue(byte[] bytes) {
+        sendQueue.add(bytes);
+    }
+
+    public synchronized byte[] removeSendQueue() {
+        return sendQueue.remove();
+    }
+
+    public synchronized boolean isSendQueueEmpty() {
+        return sendQueue.isEmpty();
     }
 
     @Override
     public void run() {
-        while(!finished);
-        System.out.println("[client ~ client] shutting down");
+        while(true){
+            if(!isSendQueueEmpty()) {
+                try {
+                    send(removeSendQueue());
+                } catch (IOException e) {
+                    break;
+                }
+            }
+        }
+        System.out.println("[client ~ sender] shutting down");
     }
     
 }

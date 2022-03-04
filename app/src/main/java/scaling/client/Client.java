@@ -57,26 +57,26 @@ public class Client {
         this.sender.start();
     }
 
-    private void sendPayloads(int count) {
-        System.out.printf("[client ~ main] sending %d payloads\n", count);
+    private void sendPayloads() {
+        System.out.printf("[client ~ main] sending payloads\n");
         this.interval_start_time = System.nanoTime();
-        for(int i = 0; i < count; i++) {
-            if(System.nanoTime() - this.interval_start_time >= 2e10) {
+        while(true) {
+            if(System.nanoTime() - this.interval_start_time >= 2e9) {
                 this.interval_start_time = System.nanoTime();
                 printStats();
+                System.out.println("[client ~ main] hashList: " + hashList.toString());
+                System.out.flush();
             }
             byte[] rand_bytes = RandomBytes.randBytes();
             String hash = Hash.SHA1FromBytes(rand_bytes);
             addHash(hash);
-            sender.send(rand_bytes);
+            sender.addSendQueue(rand_bytes);
             try {
                 Thread.sleep(1000 / messaging_rate);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
-        sender.setFinished();
-        receiver.setFinished();
     }
 
     public synchronized boolean addHash(String hash) {
@@ -148,8 +148,8 @@ public class Client {
         Client me = new Client(server_host, server_port, messaging_rate);
         me.startReceiver();
         me.startSender();
-        me.sendPayloads(10);
-        me.cleanUp();
+        me.sendPayloads();
+        //me.cleanUp();
         System.out.println("[client ~ main] shutting down");
     }
 }
