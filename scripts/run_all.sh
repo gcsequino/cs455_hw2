@@ -39,6 +39,8 @@ if [[ $COMMAND = "run" ]]; then
     echo -e "$SERVER\n$CLIENTS" > scripts/current_machines.txt
 
 
+    sleep 1s #pls remove this
+
     # start server
     window=0
     tmux rename-window -t $session_name:$window 'server'
