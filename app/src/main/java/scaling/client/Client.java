@@ -31,23 +31,77 @@ public class Client {
         this.messaging_rate = rate;
         this.sent_count = new AtomicInteger(0);
         this.received_count = new AtomicInteger(0);
-        try{
-            this.server_host = InetAddress.getByName(host);
-        } catch(UnknownHostException e) {
-            System.out.println("[client ~ main] ERROR: could not resolve host, exiting");
-            e.printStackTrace();
-            System.exit(1);
-        }
-        try {
-            this.socket = new Socket(server_host, server_port);
-        } catch (IOException e) {
-            System.out.println("[client ~ main] ERROR: could not open socket to server, exiting");
-            e.printStackTrace();
-            System.exit(1);
-        }
+        this.server_host = attemptResolveHost(host);
+        System.out.println("[client ~ main] server resovled!");
+        this.socket = attemptConnectHost(this.server_host, this.server_port);
+        System.out.println("[client ~ main] server connected!");
         this.sender = new ClientSender(socket);
         this.receiver = new ClientReceiver(this, socket);
         this.hashList = new LinkedList<>();
+    }
+
+    private Socket attemptConnectHost(InetAddress server_host, int server_port) {
+        Socket socket = null;
+        int attempts = 0;
+        do {
+            socket = connectHost(server_host, server_port);
+            if(socket == null && attempts > 4) {
+                System.out.println("[client ~ main] server unnavailable, exiting");
+                System.exit(1);
+            }
+            else if(socket == null) {
+                System.out.println("[client ~ main] failed to connect to server, retrying");
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            attempts++;
+        } while(socket == null);
+        return socket;
+    }
+
+    private Socket connectHost(InetAddress server_host, int server_port) {
+        Socket socket = null;
+        try {
+            socket = new Socket(server_host, server_port);
+        } catch (IOException e) {
+            return null;
+        }
+        return socket;
+    }
+
+    private InetAddress attemptResolveHost(String host) {
+        InetAddress server_host = null;
+        int attempts = 0;
+        do {
+            server_host = resolveHost(host);
+            if(server_host == null && attempts > 4) {
+                System.out.println("[client ~ main] server unavailable, exiting");
+                System.exit(1);
+            }
+            else if(server_host == null) {
+                System.out.println("[client ~ main] failed to resolve to server, retrying");
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            attempts++;
+        } while(server_host == null);
+        return server_host;
+    }
+
+    private InetAddress resolveHost(String host) {
+        InetAddress addy = null;
+        try{
+            addy = InetAddress.getByName(host);
+        } catch(UnknownHostException e) {
+            return null;
+        }
+        return addy;
     }
 
     private void startReceiver() {
@@ -63,7 +117,7 @@ public class Client {
     private void sendPayloads() {
         System.out.printf("[client ~ main] sending payloads\n");
         Timer stats = new Timer();
-        stats.scheduleAtFixedRate(new StatsTask(sent_count, received_count), (long)0, (long)2e19);
+        stats.scheduleAtFixedRate(new StatsTask(sent_count, received_count), (long)0, (long)2000);
         while(true) {
             byte[] rand_bytes = RandomBytes.randBytes();
             String hash = Hash.SHA1FromBytes(rand_bytes);
@@ -85,15 +139,6 @@ public class Client {
     public synchronized boolean removeHash(String hash) {
         received_count.getAndIncrement();
         return hashList.remove(hash);
-    }
-
-    private void cleanUp() {
-        try{
-            this.socket.close();
-        } catch(IOException e) {
-            System.out.println("[client ~ main] failed to close socket");
-        }
-        System.out.println("[client ~ main] hashList: " + hashList.toString());
     }
 
     private static void checkUsage(String[] args) {
