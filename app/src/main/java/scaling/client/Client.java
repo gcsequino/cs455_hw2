@@ -6,6 +6,8 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Timer;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import scaling.utils.Hash;
 import scaling.utils.RandomBytes;
@@ -21,13 +23,14 @@ public class Client {
     private final List<String> hashList;
     // Stats
     private final int messaging_rate;
-    private int sent_count;
-    private int received_count;
-    private long interval_start_time;
+    private AtomicInteger sent_count;
+    private AtomicInteger received_count;
 
     public Client(String host, int port, int rate) {
         this.server_port = port;
         this.messaging_rate = rate;
+        this.sent_count = new AtomicInteger(0);
+        this.received_count = new AtomicInteger(0);
         try{
             this.server_host = InetAddress.getByName(host);
         } catch(UnknownHostException e) {
@@ -59,14 +62,9 @@ public class Client {
 
     private void sendPayloads() {
         System.out.printf("[client ~ main] sending payloads\n");
-        this.interval_start_time = System.nanoTime();
+        Timer stats = new Timer();
+        stats.scheduleAtFixedRate(new StatsTask(sent_count, received_count), (long)0, (long)2e19);
         while(true) {
-            if(System.nanoTime() - this.interval_start_time >= 2e9) {
-                this.interval_start_time = System.nanoTime();
-                printStats();
-                System.out.println("[client ~ main] hashList: " + hashList.toString());
-                System.out.flush();
-            }
             byte[] rand_bytes = RandomBytes.randBytes();
             String hash = Hash.SHA1FromBytes(rand_bytes);
             addHash(hash);
@@ -80,18 +78,13 @@ public class Client {
     }
 
     public synchronized boolean addHash(String hash) {
-        sent_count++;
+        sent_count.getAndIncrement();
         return hashList.add(hash);
     }
 
     public synchronized boolean removeHash(String hash) {
-        received_count++;
+        received_count.getAndIncrement();
         return hashList.remove(hash);
-    }
-
-    private void printStats() {
-        System.out.printf("[%d] Total Sent Count: %d, Total Received Count: %d\n",
-            System.nanoTime(), this.sent_count, this.received_count);
     }
 
     private void cleanUp() {
