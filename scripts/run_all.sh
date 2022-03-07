@@ -51,7 +51,8 @@ if [[ $COMMAND = "run" ]]; then
 
     PROJ_DIR=$(pwd)
     echo "PROJ DIR: ${PROJ_DIR}"
-    BASE_CMD="cd ${PROJ_DIR} && sh ./scripts/run.sh"
+    BASE_CLIENT_CMD="cd ${PROJ_DIR} && sh ./scripts/run_client.sh"
+    BASE_SERVER_CMD="cd ${PROJ_DIR} && sh ./scripts/run_server.sh"
 
     readarray -t machines < ./scripts/machines.txt
     SERVER=${machines[0]}
@@ -67,14 +68,13 @@ if [[ $COMMAND = "run" ]]; then
     THREAD_POOL_SIZE=10
     BATCH_TIME=20
     BATCH_SIZE=20
-    # SERVER_CMD="${BASE_CMD} -t server -p ${SERVER_PORT} ${THREAD_POOL_SIZE} ${BATCH_SIZE} ${BATCH_TIME}"
-    SERVER_CMD="${BASE_CMD} -t server -p ${SERVER_PORT}"
+    SERVER_CMD="${BASE_SERVER_CMD} -p ${SERVER_PORT} -t ${THREAD_POOL_SIZE} -s ${BATCH_SIZE} -b ${BATCH_TIME}"
 
     tmux send-keys -t $session:$window "ssh $SERVER" C-m
     tmux send-keys -t $session:$window "${SERVER_CMD}" C-m
     echo "Running Server on: ${SERVER}"
 
-    CLIENT_CMD="${BASE_CMD} -h ${SERVER} -p ${SERVER_PORT} -r ${MESSAGING_RATE} -t client"
+    CLIENT_CMD="${BASE_CLIENT_CMD} -h ${SERVER} -p ${SERVER_PORT} -r ${MESSAGING_RATE}"
     let "window+=1"
     for machine in ${CLIENTS[@]}; do
         echo "starting client on ${machine}..."
