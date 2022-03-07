@@ -60,12 +60,16 @@ if [[ $COMMAND = "run" ]]; then
     echo -e "$SERVER\n$CLIENTS" > scripts/current_machines.txt
 
 
-    sleep 1s #pls remove this
-
     # start server
     window=0
     tmux rename-window -t $session_name:$window 'server'
+
+    THREAD_POOL_SIZE=10
+    BATCH_TIME=20
+    BATCH_SIZE=20
+    # SERVER_CMD="${BASE_CMD} -t server -p ${SERVER_PORT} ${THREAD_POOL_SIZE} ${BATCH_SIZE} ${BATCH_TIME}"
     SERVER_CMD="${BASE_CMD} -t server -p ${SERVER_PORT}"
+
     tmux send-keys -t $session:$window "ssh $SERVER" C-m
     tmux send-keys -t $session:$window "${SERVER_CMD}" C-m
     echo "Running Server on: ${SERVER}"

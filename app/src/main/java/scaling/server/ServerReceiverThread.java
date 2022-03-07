@@ -13,6 +13,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import scaling.utils.ClientInfo;
+import scaling.utils.DataUnit;
 import scaling.utils.Hash;
 import scaling.utils.RandomBytes;
 import scaling.utils.ReadWriteUtils;
@@ -74,6 +75,10 @@ public class ServerReceiverThread extends Thread {
 
     }
 
+    private void addToWorkUnit(byte[] data, ClientInfo client_info){
+        DataUnit current = new DataUnit(data, client_info);
+        current_work_unit.addDataUnit(current);
+    }
     private void readData(SelectionKey key, ClientInfo client_info){
         ByteBuffer data = ByteBuffer.allocate(RandomBytes.BUFFER_SIZE); //allocate buffer for 8KB
         SocketChannel client_socket = (SocketChannel) key.channel();
@@ -85,14 +90,13 @@ public class ServerReceiverThread extends Thread {
                 System.out.println("[server ~ receiver_thread] Deregistering " + client_info + " from the server.");
                 key.cancel();
             }
-            // else if(bytes_read != RandomBytes.BUFFER_SIZE){
-            //     System.out.println("[server ~ receiver_thread] ERROR - " + client_info + " - Read an abnormal amount of data");
-            //     key.cancel();
-            // }
             else{
                 byte[] data_bytes = data.array();
+                //addToWorkUnit(data_bytes, client_info);
                 String data_hash = Hash.SHA1FromBytes(data_bytes);
-                System.out.printf("Read data with hash [length: %s]%s from client\n", data_hash.length(), data_hash, client_info); 
+                System.out.printf("Read data with hash [length: %s]%s from client\n", data_hash.length(), data_hash, client_info);
+
+                // REMOVE ME -- Writing back to client for testing purposes 
                 try{
                     System.out.printf("Writing data with hash %s back to client\n\n", data_hash, client_info); 
                     ReadWriteUtils.writeString(data_hash, client_socket);
