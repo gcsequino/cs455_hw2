@@ -1,16 +1,37 @@
 #! /bin/bash
 
-USAGE="USAGE: ./run_all.sh [clean|run] num_nodes server_port messaging_rate"
+USAGE_MSG="USAGE: ./run_all.sh -m <clean|run> -n <num_nodes> -p <server_port> -r <messaging_rate>"
+usage() { echo ${USAGE_MSG} 1>&2; exit 1; }
 
-if [[ $1 == "run" ]] && [[ $# != 4 ]]; then
-    echo "$USAGE"
-    exit 1
+while getopts ":m:n:p:r:" o; do
+    case "${o}" in
+        m)
+            MODE=${OPTARG}
+            ;;
+        n)
+            NUM_CLIENTS=${OPTARG}
+            ;;
+        p)
+            SERVER_PORT=${OPTARG}
+            ;;
+        r)
+            MESSAGING_RATE=${OPTARG}
+            ;;
+        *)
+            usage
+            ;;
+    esac
+done
+
+if [ -z "${MODE}" ]; then
+    usage
+elif [ "${MODE}" == "run" ]; then
+    if ([ -z "${NUM_CLIENTS}" ] || [ -z ${SERVER_PORT} ] || [ -z "${MESSAGING_RATE}" ]); then
+        usage
+    fi
 fi
 
-COMMAND=$1
-NUM_CLIENTS=$2
-SERVER_PORT=$3
-MESSAGING_RATE=$4
+COMMAND=$MODE
 
 session_name="cs455-hw2"
 KILL_SESSION_CMD="tmux kill-session -t $session_name"
