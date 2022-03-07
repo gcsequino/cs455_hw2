@@ -1,14 +1,14 @@
 package scaling.server;
 
 import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.BlockingQueue;
 
 import scaling.utils.WorkUnit;
 
 public class Server {
     Queue<WorkUnit> ready_queue;
     public Server(){
-        ready_queue = new ConcurrentLinkedQueue();
+        ready_queue = new BlockingQueue();
     }
 
     public boolean addToReadyQueue(WorkUnit work){
