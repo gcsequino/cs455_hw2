@@ -65,7 +65,7 @@ if [[ $COMMAND = "run" ]]; then
     # start server
     window=0
     tmux rename-window -t $session_name:$window 'server'
-    SERVER_CMD="${BASE_CMD} -t server"
+    SERVER_CMD="${BASE_CMD} -t server -p ${SERVER_PORT}"
     tmux send-keys -t $session:$window "ssh $SERVER" C-m
     tmux send-keys -t $session:$window "${SERVER_CMD}" C-m
     echo "Running Server on: ${SERVER}"
@@ -89,5 +89,6 @@ if [[ $COMMAND = "run" ]]; then
     exit 0
 elif [[ $COMMAND = "clean" ]]; then
     echo "killing tmux session $session_name"
+    rm scripts/current_machines.txt
     $KILL_SESSION_CMD
 fi

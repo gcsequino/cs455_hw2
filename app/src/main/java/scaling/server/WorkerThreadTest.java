@@ -6,6 +6,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import scaling.utils.RandomBytes;
+import scaling.utils.WorkUnit;
 
 public class WorkerThreadTest {
     public static void main(String[] args) {

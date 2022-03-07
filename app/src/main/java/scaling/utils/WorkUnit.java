@@ -1,6 +1,8 @@
-package scaling.server;
+package scaling.utils;
 
 import java.util.List;
+
+import scaling.server.DataUnit;
 
 public class WorkUnit {
     public final List<DataUnit> work;

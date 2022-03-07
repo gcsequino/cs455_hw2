@@ -1,7 +1,9 @@
 package scaling.server;
 
 import java.util.concurrent.BlockingQueue;
+
 import scaling.utils.Hash;
+import scaling.utils.WorkUnit;
 
 public class WorkerThread extends Thread {
     private BlockingQueue<WorkUnit> readyQueue;

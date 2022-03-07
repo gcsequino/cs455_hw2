@@ -34,8 +34,8 @@ if [ "${type}" = "client" ]; then
     java -cp ./app/build/libs/app.jar "${main_class}" "${server_host}" "${server_port}" "${messaging_rate}"
 elif [ "${type}" = "server" ]; then
     # TODO - CHANGE ME TO ACTUAL SERVER
-    main_class="scaling.client.TestServer"
-    java -cp ./app/build/libs/app.jar ${main_class}
+    main_class="scaling.server.Server"
+    java -cp ./app/build/libs/app.jar ${main_class} "${server_port}"
 else
     echo "invalid main class type given: ${type}"
 fi
