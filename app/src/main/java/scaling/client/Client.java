@@ -18,8 +18,8 @@ public class Client {
     private final int server_port;
     // Operational components
     private Socket socket;
-    private final ClientReceiver receiver;
-    private final ClientSender sender;
+    private final ClientReceiverThread receiver;
+    private final ClientSenderThread sender;
     private final List<String> hashList;
     // Stats
     private final int messaging_rate;
@@ -35,8 +35,8 @@ public class Client {
         System.out.println("[client ~ main] server resovled!");
         this.socket = attemptConnectHost(this.server_host, this.server_port);
         System.out.println("[client ~ main] server connected!");
-        this.sender = new ClientSender(socket);
-        this.receiver = new ClientReceiver(this, socket);
+        this.sender = new ClientSenderThread(socket);
+        this.receiver = new ClientReceiverThread(this, socket);
         this.hashList = new LinkedList<>();
     }
 
@@ -137,8 +137,13 @@ public class Client {
     }
 
     public synchronized boolean removeHash(String hash) {
+        if(!hashList.remove(hash)){
+            System.out.println("[server ~ receiver] Attempting to remove hash that is not in hashQueue");
+            System.exit(1);
+            return false;
+        }
         received_count.getAndIncrement();
-        return hashList.remove(hash);
+        return true;
     }
 
     private static void checkUsage(String[] args) {

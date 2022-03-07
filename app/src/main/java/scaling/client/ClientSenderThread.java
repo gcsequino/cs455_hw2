@@ -6,11 +6,11 @@ import java.net.Socket;
 import java.util.LinkedList;
 import java.util.Queue;
 
-public class ClientSender extends Thread {
+public class ClientSenderThread extends Thread {
     private DataOutputStream output_stream;
     private Queue<byte[]> sendQueue;
 
-    public ClientSender(Socket socket) {
+    public ClientSenderThread(Socket socket) {
         try {
             output_stream = new DataOutputStream(socket.getOutputStream());
             sendQueue = new LinkedList<>();
