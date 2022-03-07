@@ -17,7 +17,6 @@ public class WorkUnit {
     }
 
     public boolean isFull(){
-        System.out.println(work.size());
         return work.size() == batch_size;
     }
 
