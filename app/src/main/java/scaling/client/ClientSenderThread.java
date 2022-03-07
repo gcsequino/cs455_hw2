@@ -6,8 +6,6 @@ import java.net.Socket;
 import java.util.LinkedList;
 import java.util.Queue;
 
-import scaling.utils.Hash;
-
 public class ClientSenderThread extends Thread {
     private DataOutputStream output_stream;
     private Queue<byte[]> sendQueue;
@@ -45,8 +43,7 @@ public class ClientSenderThread extends Thread {
             if(!isSendQueueEmpty()) {
                 try {
                     byte[] data_to_send = removeSendQueue();
-                    System.out.println("[client ~ sender] Sending Data with Hash: " + Hash.SHA1FromBytes(data_to_send));
-                    //System.out.printf("First Byte: %d\n", data_to_send[0]);
+                    //System.out.println("[client ~ sender] Sending Data with Hash: " + Hash.SHA1FromBytes(data_to_send));
                     send(data_to_send);
                 } catch (IOException e) {
                     break;

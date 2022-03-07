@@ -29,7 +29,7 @@ public class ClientReceiverThread extends Thread {
                 byte[] hash_bytes = new byte[Hash.HASH_SIZE];
                 input_stream.readFully(hash_bytes);
                 recv_hash = new String(hash_bytes);
-                System.out.printf("[client ~ receiver] Recieved data with [%s]hash %s\n", recv_hash.length(), recv_hash);
+                //System.out.printf("[client ~ receiver] Recieved data with [%s]hash %s\n", recv_hash.length(), recv_hash);
             }catch (EOFException eof){
                 System.out.printf("[client ~ receiver] EOF -- Server disconnected before full hash bytes were read.\n");
                 break;

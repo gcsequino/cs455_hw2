@@ -1,6 +1,6 @@
 #! /bin/bash
 
-USAGE_MSG="USAGE: ./run_all.sh -m <clean|run> -n <num_nodes> -p <server_port> -r <messaging_rate>"
+USAGE_MSG="USAGE: ./run_all.sh -m <clean|run|ssh-check> -n <num_nodes> -p <server_port> -r <messaging_rate>"
 usage() { echo ${USAGE_MSG} 1>&2; exit 1; }
 
 while getopts ":m:n:p:r:" o; do
@@ -89,10 +89,20 @@ if [[ $COMMAND = "run" ]]; then
             tmux send-keys -t "${SELECTED_PANE}" "clear;${CLIENT_CMD}" C-m
         let "window+=1" 
     done
+    tmux select-window -t "$session_name:0"
     tmux a
     exit 0
 elif [[ $COMMAND = "clean" ]]; then
     echo "killing tmux session $session_name"
     rm scripts/current_machines.txt
     $KILL_SESSION_CMD
+elif [[ $COMMAND = "ssh-check" ]]; then
+    readarray -t machines < ./scripts/machines.txt
+    for computer in ${machines[@]}; do
+        #echo Trying "$computer" 
+        timeout 5 ssh -o PasswordAuthentication=no "$computer" /bin/true
+        if [ $? != 0 ];then
+            echo "$computer is not ssh-able"
+        fi
+    done
 fi

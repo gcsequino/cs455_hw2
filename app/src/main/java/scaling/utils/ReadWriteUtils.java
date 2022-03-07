@@ -21,16 +21,15 @@ public class ReadWriteUtils {
     public static int writeBytes(byte[] bytes, SocketChannel socket) throws IOException{
         ByteBuffer buffer = ByteBuffer.wrap(bytes);
 
-        System.out.printf("Writing Buffer with val: %s\n", new String(buffer.array()));
+        //System.out.printf("Writing Buffer with val: %s\n", new String(buffer.array()));
         int bytes_written = 0;
         while ( buffer.hasRemaining() ){
               bytes_written = socket.write(buffer);
               if(bytes_written == 0){
                   System.out.println("ERROR - buffer is full, cannot write.");
               }
-              System.out.printf("Bytes Written = %s\n", bytes_written);
+              //System.out.printf("Bytes Written = %s\n", bytes_written);
         }
-        System.out.flush();
         return bytes_written;
     }
 }

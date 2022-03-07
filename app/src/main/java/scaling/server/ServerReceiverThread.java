@@ -25,12 +25,16 @@ public class ServerReceiverThread extends Thread {
 
     private List<ClientInfo> clients;
     private WorkUnit current_work_unit;
+    private Integer batch_size;
+    private Server server;
 
     private Integer port;
     
-    public ServerReceiverThread(int port){
+    public ServerReceiverThread(Server s, int port, int batch_size){
         this.port = port;
         clients = new ArrayList<>();
+        this.server = s;
+        current_work_unit = new WorkUnit(batch_size);
         try{
             selector = Selector.open();
             System.out.println("[server ~ receiver_thread] Opened Selector");
@@ -78,13 +82,17 @@ public class ServerReceiverThread extends Thread {
     private void addToWorkUnit(byte[] data, ClientInfo client_info){
         DataUnit current = new DataUnit(data, client_info);
         current_work_unit.addDataUnit(current);
+        if(current_work_unit.isFull()){
+            server.addToReadyQueue(current_work_unit);
+            current_work_unit = new WorkUnit(batch_size); //creating new WorkUnit
+        }
     }
     private void readData(SelectionKey key, ClientInfo client_info){
         ByteBuffer data = ByteBuffer.allocate(RandomBytes.BUFFER_SIZE); //allocate buffer for 8KB
         SocketChannel client_socket = (SocketChannel) key.channel();
         try{
             int bytes_read = ReadWriteUtils.read(data, client_socket);
-            System.out.printf("%d bytes read.\n", bytes_read);
+            //System.out.printf("%d bytes read.\n", bytes_read);
             if(bytes_read == -1){
                 System.out.println("[server ~ receiver_thread] ERROR - " + client_info + " Disconnected from the server.");
                 System.out.println("[server ~ receiver_thread] Deregistering " + client_info + " from the server.");
@@ -92,16 +100,16 @@ public class ServerReceiverThread extends Thread {
             }
             else{
                 byte[] data_bytes = data.array();
-                //addToWorkUnit(data_bytes, client_info);
+                addToWorkUnit(data_bytes, client_info);
                 String data_hash = Hash.SHA1FromBytes(data_bytes);
-                System.out.printf("Read data with hash [length: %s]%s from client\n", data_hash.length(), data_hash, client_info);
+                //System.out.printf("Read data with hash [length: %s]%s from client\n", data_hash.length(), data_hash, client_info);
 
                 // REMOVE ME -- Writing back to client for testing purposes 
                 try{
-                    System.out.printf("Writing data with hash %s back to client\n\n", data_hash, client_info); 
+                    //System.out.printf("Writing data with hash %s back to client\n\n", data_hash, client_info); 
                     ReadWriteUtils.writeString(data_hash, client_socket);
-                    System.out.printf("Finished writing data with hash %s back to client\n\n", data_hash, client_info); 
-                    System.out.flush();
+                    // System.out.printf("Finished writing data with hash %s back to client\n\n", data_hash, client_info); 
+                    // System.out.flush();
                 } catch(IOException ioe){
                     System.out.println("[server ~ receiver_thread] error writing data to " + client_info);
                     System.out.println("[server ~ receiver_thread] Deregistering " + client_info + " from the server.");

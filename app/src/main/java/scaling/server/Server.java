@@ -1,10 +1,19 @@
 package scaling.server;
 
-public class Server {
-    public Server(){
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
+import scaling.utils.WorkUnit;
+
+public class Server {
+    Queue<WorkUnit> ready_queue;
+    public Server(){
+        ready_queue = new ConcurrentLinkedQueue();
     }
 
+    public boolean addToReadyQueue(WorkUnit work){
+        return ready_queue.add(work);
+    }
     public static void main(String[] args){
         if(args.length != 4){
             System.err.println("ERROR: too many args provided to Server -> " + args.length);
@@ -21,7 +30,8 @@ public class Server {
         System.out.println("Got server batch-size: " + batch_size);
         System.out.println("Got server batch-time: " + batch_time_in_seconds);
 
-        ServerReceiverThread reciever = new ServerReceiverThread(port);
+        Server me = new Server();
+        ServerReceiverThread reciever = new ServerReceiverThread(me, port, batch_size);
         reciever.start();
     }
 }
