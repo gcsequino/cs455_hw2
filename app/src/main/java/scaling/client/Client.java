@@ -139,6 +139,11 @@ public class Client {
     public synchronized boolean removeHash(String hash) {
         if(!hashList.remove(hash)){
             System.out.println("[server ~ receiver] Attempting to remove hash that is not in hashQueue");
+            System.out.print("HashList: [");
+            for(String s : hashList){
+                System.out.print(s + " ");
+            }
+            System.out.println("]");
             System.exit(1);
             return false;
         }

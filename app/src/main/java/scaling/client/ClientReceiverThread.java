@@ -38,7 +38,9 @@ public class ClientReceiverThread extends Thread {
                 break;
             } 
 
-            if(recv_hash != null) client.removeHash(recv_hash);
+            if(recv_hash != null){
+                client.removeHash(recv_hash);
+            }
         }
         System.out.println("[client ~ recv] shutting down");
         System.out.flush();

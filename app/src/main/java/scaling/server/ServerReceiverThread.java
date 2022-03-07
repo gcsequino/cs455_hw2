@@ -79,27 +79,30 @@ public class ServerReceiverThread extends Thread {
         SocketChannel client_socket = (SocketChannel) key.channel();
         try{
             int bytes_read = ReadWriteUtils.read(data, client_socket);
-            //int bytes_read = client_socket.read(data);
+            System.out.printf("%d bytes read.\n", bytes_read);
             if(bytes_read == -1){
                 System.out.println("[server ~ receiver_thread] ERROR - " + client_info + " Disconnected from the server.");
                 System.out.println("[server ~ receiver_thread] Deregistering " + client_info + " from the server.");
-                //key.cancel();
-                System.exit(1);
+                key.cancel();
             }
+            // else if(bytes_read != RandomBytes.BUFFER_SIZE){
+            //     System.out.println("[server ~ receiver_thread] ERROR - " + client_info + " - Read an abnormal amount of data");
+            //     key.cancel();
+            // }
             else{
-                String str_data = new String(data.array());
-                String data_hash = Hash.SHA1FromBytes(str_data.getBytes());
-                System.out.printf("\tRead data with hash [length: %s]%s from client\n", data_hash.length(), data_hash, client_info); 
-                // try{
-                //     System.out.printf("\tWriting data with hash %s back to client\n\n", data_hash, client_info); 
-                //     ReadWriteUtils.writeString(data_hash, client_socket);
-                //     System.out.printf("\tFinished writing data with hash %s back to client\n\n", data_hash, client_info); 
-                //     System.out.flush();
-                // } catch(IOException ioe){
-                //     System.out.println("[server ~ receiver_thread] error writing data to " + client_info);
-                //     System.out.println("[server ~ receiver_thread] Deregistering " + client_info + " from the server.");
-                //     key.cancel();
-                // }
+                byte[] data_bytes = data.array();
+                String data_hash = Hash.SHA1FromBytes(data_bytes);
+                System.out.printf("Read data with hash [length: %s]%s from client\n", data_hash.length(), data_hash, client_info); 
+                try{
+                    System.out.printf("Writing data with hash %s back to client\n\n", data_hash, client_info); 
+                    ReadWriteUtils.writeString(data_hash, client_socket);
+                    System.out.printf("Finished writing data with hash %s back to client\n\n", data_hash, client_info); 
+                    System.out.flush();
+                } catch(IOException ioe){
+                    System.out.println("[server ~ receiver_thread] error writing data to " + client_info);
+                    System.out.println("[server ~ receiver_thread] Deregistering " + client_info + " from the server.");
+                    key.cancel();
+                }
             }
         }catch(IOException ioe){
             System.out.println("[server ~ receiver_thread] error reading data from " + client_info);

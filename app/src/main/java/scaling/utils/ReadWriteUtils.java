@@ -8,17 +8,17 @@ public class ReadWriteUtils {
     public static int read(ByteBuffer buffer, SocketChannel socket) throws IOException{
         int bytesRead = 0;
         while ( buffer.hasRemaining() && bytesRead != -1 ){
-              bytesRead += socket.read(buffer);
+            bytesRead = socket.read(buffer);
         }
         buffer.rewind(); //reset buffer position to 0
         return bytesRead;
     }
 
     public static int writeString(String input, SocketChannel socket) throws IOException{
-        return write(input.getBytes(), socket); //then write actual data
+        return writeBytes(input.getBytes(), socket); //then write actual data
     }
 
-    public static int write(byte[] bytes, SocketChannel socket) throws IOException{
+    public static int writeBytes(byte[] bytes, SocketChannel socket) throws IOException{
         ByteBuffer buffer = ByteBuffer.wrap(bytes);
 
         System.out.printf("Writing Buffer with val: %s\n", new String(buffer.array()));
@@ -30,6 +30,7 @@ public class ReadWriteUtils {
               }
               System.out.printf("Bytes Written = %s\n", bytes_written);
         }
+        System.out.flush();
         return bytes_written;
     }
 }
