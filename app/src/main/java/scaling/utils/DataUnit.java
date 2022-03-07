@@ -8,4 +8,8 @@ public class DataUnit {
         this.data = data;
         this.client_info = client_info;
     }
+
+    public String toString(){
+        return this.client_info.toString();
+    }
 }

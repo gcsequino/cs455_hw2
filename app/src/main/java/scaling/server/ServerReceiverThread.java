@@ -34,7 +34,8 @@ public class ServerReceiverThread extends Thread {
         this.port = port;
         clients = new ArrayList<>();
         this.server = s;
-        current_work_unit = new WorkUnit(batch_size);
+        this.current_work_unit = new WorkUnit(batch_size);
+        this.batch_size = batch_size;
         try{
             selector = Selector.open();
             System.out.println("[server ~ receiver_thread] Opened Selector");
@@ -84,7 +85,7 @@ public class ServerReceiverThread extends Thread {
         current_work_unit.addDataUnit(current);
         if(current_work_unit.isFull()){
             server.addToReadyQueue(current_work_unit);
-            current_work_unit = new WorkUnit(batch_size); //creating new WorkUnit
+            this.current_work_unit = new WorkUnit(batch_size); //creating new WorkUnit
         }
     }
     private void readData(SelectionKey key, ClientInfo client_info){

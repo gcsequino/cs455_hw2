@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class WorkUnit {
-    public final List<DataUnit> work;
+    private final List<DataUnit> work;
     private Integer batch_size;
 
     public WorkUnit(Integer batch_size) {
@@ -17,8 +17,18 @@ public class WorkUnit {
     }
 
     public boolean isFull(){
+        System.out.println(work.size());
         return work.size() == batch_size;
     }
 
-    
+    public List<DataUnit> getWorkQueue(){
+        return work;
+    }
+    public String toString(){
+        String out = "";
+        for(DataUnit d : work){
+           out += d.toString() + " ";
+        }
+        return out;
+    }
 }

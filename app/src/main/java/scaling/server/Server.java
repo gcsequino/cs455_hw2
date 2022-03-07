@@ -31,7 +31,7 @@ public class Server {
         System.out.println("Got server batch-time: " + batch_time_in_seconds);
 
         Server me = new Server();
-        ServerReceiverThread reciever = new ServerReceiverThread(me, port, batch_size);
-        reciever.start();
+        ServerReceiverThread receiver = new ServerReceiverThread(me, port, batch_size);
+        receiver.start();
     }
 }

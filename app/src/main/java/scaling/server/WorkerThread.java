@@ -28,7 +28,7 @@ public class WorkerThread extends Thread {
     }
 
     private void work(WorkUnit workUnit) {
-        for(DataUnit data : workUnit.work) {
+        for(DataUnit data : workUnit.getWorkQueue()) {
             Hash.SHA1FromBytes(data.data);
         }
         numWorkUnitsProcessed++;
