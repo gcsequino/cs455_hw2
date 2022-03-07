@@ -5,6 +5,8 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.net.Socket;
 
+import scaling.utils.Hash;
+
 public class ClientReceiverThread extends Thread {
     private Client client;
     private DataInputStream input_stream;
@@ -24,16 +26,10 @@ public class ClientReceiverThread extends Thread {
         while(true) {
             String recv_hash = null;
             try {
-                byte[] input_size_bytes = new byte[4];
-                System.out.println("[client ~ receiver] Waiting to read length from socket");
-                input_stream.read(input_size_bytes);
-                int input_length = Integer.parseInt(new String(input_size_bytes));
-                System.out.printf("[client ~ receiver] waiting for %d number of bytes.", input_length);
-                System.out.flush();
-                byte[] hash_bytes = new byte[input_length];
+                byte[] hash_bytes = new byte[Hash.HASH_SIZE];
                 input_stream.readFully(hash_bytes);
                 recv_hash = new String(hash_bytes);
-                //System.out.printf("[client ~ receiver] Recieved data with [%s]hash %s\n", recv_hash.length(), recv_hash);
+                System.out.printf("[client ~ receiver] Recieved data with [%s]hash %s\n", recv_hash.length(), recv_hash);
             }catch (EOFException eof){
                 System.out.printf("[client ~ receiver] EOF -- Server disconnected before full hash bytes were read.\n");
                 break;

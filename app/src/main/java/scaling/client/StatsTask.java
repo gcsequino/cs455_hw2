@@ -1,5 +1,6 @@
 package scaling.client;
 
+import java.util.Date;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -14,8 +15,10 @@ public class StatsTask extends TimerTask {
     }
 
     private void printStats() {
-        System.out.printf("[%d] Total Sent Count: %s, Total Received Count: %s\n",
-            System.nanoTime(), sent_count.toString(), received_count.toString());
+        Date curTime = new Date(System.currentTimeMillis());
+        System.out.printf("[%s] Total Sent Count: %s, Total Received Count: %s\n", curTime, sent_count.toString(), received_count.toString());
+
+            //System.out.printf("[%d] HashQueue\n", curTime, );
     }
 
     @Override

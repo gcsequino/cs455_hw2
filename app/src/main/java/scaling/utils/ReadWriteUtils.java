@@ -15,17 +15,9 @@ public class ReadWriteUtils {
     }
 
     public static int writeString(String input, SocketChannel socket) throws IOException{
-        writeLength(input.length(), socket); //first write the length of the data
         return write(input.getBytes(), socket); //then write actual data
     }
 
-    private static void writeLength(int length, SocketChannel socket) throws IOException {
-        ByteBuffer buffer = ByteBuffer.allocate(4);
-        buffer.putInt(length);
-        buffer.flip();
-        socket.write(buffer);
-        System.out.printf("Wrote length of buffer %d\n", length);
-    }
     public static int write(byte[] bytes, SocketChannel socket) throws IOException{
         ByteBuffer buffer = ByteBuffer.wrap(bytes);
 

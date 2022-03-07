@@ -65,7 +65,6 @@ public class ServerReceiverThread extends Thread {
               client_info = new ClientInfo(client_host_name, client_port, client_socket);
               clients.add(client_info);
             }
-
             client_key.attach(client_info); //attach the ClientInfo to this socket.
             System.out.println("[server ~ receiver_thread] new client registered -> " + client_info.toString());
         } catch(IOException ioe){
@@ -80,25 +79,27 @@ public class ServerReceiverThread extends Thread {
         SocketChannel client_socket = (SocketChannel) key.channel();
         try{
             int bytes_read = ReadWriteUtils.read(data, client_socket);
+            //int bytes_read = client_socket.read(data);
             if(bytes_read == -1){
                 System.out.println("[server ~ receiver_thread] ERROR - " + client_info + " Disconnected from the server.");
                 System.out.println("[server ~ receiver_thread] Deregistering " + client_info + " from the server.");
-                key.cancel();
-            }else{
+                //key.cancel();
+                System.exit(1);
+            }
+            else{
                 String str_data = new String(data.array());
                 String data_hash = Hash.SHA1FromBytes(str_data.getBytes());
                 System.out.printf("\tRead data with hash [length: %s]%s from client\n", data_hash.length(), data_hash, client_info); 
-
-                try{
-                    System.out.printf("\tWriting data with hash %s back to client\n\n", data_hash, client_info); 
-                    ReadWriteUtils.writeString(data_hash, client_socket);
-                    System.out.printf("\tFinished writing data with hash %s back to client\n\n", data_hash, client_info); 
-                    System.out.flush();
-                } catch(IOException ioe){
-                    System.out.println("[server ~ receiver_thread] error writing data to " + client_info);
-                    System.out.println("[server ~ receiver_thread] Deregistering " + client_info + " from the server.");
-                    key.cancel();
-                }
+                // try{
+                //     System.out.printf("\tWriting data with hash %s back to client\n\n", data_hash, client_info); 
+                //     ReadWriteUtils.writeString(data_hash, client_socket);
+                //     System.out.printf("\tFinished writing data with hash %s back to client\n\n", data_hash, client_info); 
+                //     System.out.flush();
+                // } catch(IOException ioe){
+                //     System.out.println("[server ~ receiver_thread] error writing data to " + client_info);
+                //     System.out.println("[server ~ receiver_thread] Deregistering " + client_info + " from the server.");
+                //     key.cancel();
+                // }
             }
         }catch(IOException ioe){
             System.out.println("[server ~ receiver_thread] error reading data from " + client_info);
@@ -108,7 +109,10 @@ public class ServerReceiverThread extends Thread {
     public void run(){
         while(true) {
             try{
-                if (selector.selectNow() == 0) continue; //no channels have made an action
+                if (selector.selectNow() == 0){
+                    //no channels have made an action
+                    continue; 
+                }
                 Iterator<SelectionKey> iter = selector.selectedKeys().iterator();
                 while(iter.hasNext()){
                     SelectionKey key = iter.next();
@@ -117,13 +121,15 @@ public class ServerReceiverThread extends Thread {
                         registerClient();
                     }else if(key.isReadable()){
                         ClientInfo info = (ClientInfo) key.attachment();
-                        System.out.println("[server ~ receiver_thread] Recieved data from: " + info);
+                        System.out.println("[server ~ receiver_thread] Received data from: " + info);
+                        System.out.flush();
                         readData(key, info);
                     }
                     iter.remove(); //remove key so that we don't try to do this event again.
                 }
             }catch(IOException ioe){
                 System.out.println("[server ~ receiver_thread] ERROR - reading from selector");
+                System.exit(1);
             }
         }
     }

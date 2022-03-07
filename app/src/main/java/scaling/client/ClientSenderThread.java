@@ -41,6 +41,7 @@ public class ClientSenderThread extends Thread {
         while(true){
             if(!isSendQueueEmpty()) {
                 try {
+                    System.out.println("Sending Data.");
                     send(removeSendQueue());
                 } catch (IOException e) {
                     break;

@@ -32,7 +32,7 @@ public class Client {
         this.sent_count = new AtomicInteger(0);
         this.received_count = new AtomicInteger(0);
         this.server_host = attemptResolveHost(host);
-        System.out.println("[client ~ main] server resovled!");
+        System.out.println("[client ~ main] server resolved!");
         this.socket = attemptConnectHost(this.server_host, this.server_port);
         System.out.println("[client ~ main] server connected!");
         this.sender = new ClientSenderThread(socket);
@@ -46,7 +46,7 @@ public class Client {
         do {
             socket = connectHost(server_host, server_port);
             if(socket == null && attempts > 4) {
-                System.out.println("[client ~ main] server unnavailable, exiting");
+                System.out.println("[client ~ main] server unavailable, exiting");
                 System.exit(1);
             }
             else if(socket == null) {
@@ -121,8 +121,8 @@ public class Client {
         while(true) {
             byte[] rand_bytes = RandomBytes.randBytes();
             String hash = Hash.SHA1FromBytes(rand_bytes);
-            addHash(hash);
             sender.addSendQueue(rand_bytes);
+            addHash(hash);
             try {
                 Thread.sleep(1000 / messaging_rate);
             } catch (InterruptedException e) {
