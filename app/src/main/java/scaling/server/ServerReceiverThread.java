@@ -11,6 +11,8 @@ import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import scaling.utils.ClientInfo;
 import scaling.utils.DataUnit;
@@ -28,14 +30,17 @@ public class ServerReceiverThread extends Thread {
     private Integer batch_size;
     private Server server;
 
+    private ConcurrentHashMap<Integer, AtomicInteger> msgs_processed;
+
     private Integer port;
     
-    public ServerReceiverThread(Server s, int port, int batch_size){
+    public ServerReceiverThread(Server s, int port, int batch_size, ConcurrentHashMap<Integer, AtomicInteger> msgs_processed){
         this.port = port;
         clients = new ArrayList<>();
         this.server = s;
         this.current_work_unit = new WorkUnit(batch_size);
         this.batch_size = batch_size;
+        this.msgs_processed = msgs_processed;
         try{
             selector = Selector.open();
             System.out.println("[server ~ receiver_thread] Opened Selector");
@@ -70,6 +75,7 @@ public class ServerReceiverThread extends Thread {
               Integer client_port = address.getPort();
               client_info = new ClientInfo(client_host_name, client_port, client_socket);
               clients.add(client_info);
+              msgs_processed.put(client_info.port, new AtomicInteger(0));
             }
             client_key.attach(client_info); //attach the ClientInfo to this socket.
             System.out.println("[server ~ receiver_thread] new client registered -> " + client_info.toString());

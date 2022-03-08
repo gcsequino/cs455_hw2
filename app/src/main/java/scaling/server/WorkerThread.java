@@ -1,7 +1,9 @@
 package scaling.server;
 
 import java.io.IOException;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import scaling.utils.DataUnit;
 import scaling.utils.Hash;
@@ -10,11 +12,11 @@ import scaling.utils.WorkUnit;
 
 public class WorkerThread extends Thread {
     private LinkedBlockingQueue<WorkUnit> readyQueue;
-    private int numWorkUnitsProcessed;
+    ConcurrentHashMap<Integer, AtomicInteger> sharedMsgsProcessed;
 
-    public WorkerThread(LinkedBlockingQueue<WorkUnit> readyQueue) {
+    public WorkerThread(LinkedBlockingQueue<WorkUnit> readyQueue, ConcurrentHashMap<Integer, AtomicInteger> sharedMsgsProcessed) {
         this.readyQueue = readyQueue;
-        numWorkUnitsProcessed = 0;
+        this.sharedMsgsProcessed = sharedMsgsProcessed;
     }
 
     @Override
@@ -40,7 +42,7 @@ public class WorkerThread extends Thread {
                 System.out.printf("[server ~ %s] error writing data to %s\n", Thread.currentThread().getName(), dataUnit.client_info);
                 e.printStackTrace();
             }
+            sharedMsgsProcessed.get(dataUnit.client_info.port).getAndIncrement();
         }
-        numWorkUnitsProcessed++;
     }
 }
