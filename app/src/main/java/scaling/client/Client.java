@@ -18,8 +18,8 @@ public class Client {
     private final int server_port;
     // Operational components
     private Socket socket;
-    private final ClientReceiver receiver;
-    private final ClientSender sender;
+    private final ClientReceiverThread receiver;
+    private final ClientSenderThread sender;
     private final List<String> hashList;
     // Stats
     private final int messaging_rate;
@@ -32,11 +32,11 @@ public class Client {
         this.sent_count = new AtomicInteger(0);
         this.received_count = new AtomicInteger(0);
         this.server_host = attemptResolveHost(host);
-        System.out.println("[client ~ main] server resovled!");
+        System.out.println("[client ~ main] server resolved!");
         this.socket = attemptConnectHost(this.server_host, this.server_port);
         System.out.println("[client ~ main] server connected!");
-        this.sender = new ClientSender(socket);
-        this.receiver = new ClientReceiver(this, socket);
+        this.sender = new ClientSenderThread(socket);
+        this.receiver = new ClientReceiverThread(this, socket);
         this.hashList = new LinkedList<>();
     }
 
@@ -46,7 +46,7 @@ public class Client {
         do {
             socket = connectHost(server_host, server_port);
             if(socket == null && attempts > 4) {
-                System.out.println("[client ~ main] server unnavailable, exiting");
+                System.out.println("[client ~ main] server unavailable, exiting");
                 System.exit(1);
             }
             else if(socket == null) {
@@ -121,8 +121,8 @@ public class Client {
         while(true) {
             byte[] rand_bytes = RandomBytes.randBytes();
             String hash = Hash.SHA1FromBytes(rand_bytes);
-            addHash(hash);
             sender.addSendQueue(rand_bytes);
+            addHash(hash);
             try {
                 Thread.sleep(1000 / messaging_rate);
             } catch (InterruptedException e) {
@@ -137,8 +137,18 @@ public class Client {
     }
 
     public synchronized boolean removeHash(String hash) {
+        if(!hashList.remove(hash)){
+            System.out.println("[server ~ receiver] Attempting to remove hash that is not in hashQueue");
+            System.out.print("HashList: [");
+            for(String s : hashList){
+                System.out.print(s + " ");
+            }
+            System.out.println("]");
+            System.exit(1);
+            return false;
+        }
         received_count.getAndIncrement();
-        return hashList.remove(hash);
+        return true;
     }
 
     private static void checkUsage(String[] args) {

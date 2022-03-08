@@ -3,7 +3,6 @@ vail
 breckenridge
 silverton
 copper-mtn
-snowmass
 monarch
 grandby-ranch
 beijing
@@ -91,8 +90,7 @@ halibut
 herring       
 mackerel      
 marlin        
-perch         
-pollock       
+perch             
 sardine       
 shark         
 sole          

@@ -6,11 +6,11 @@ import java.net.Socket;
 import java.util.LinkedList;
 import java.util.Queue;
 
-public class ClientSender extends Thread {
+public class ClientSenderThread extends Thread {
     private DataOutputStream output_stream;
     private Queue<byte[]> sendQueue;
 
-    public ClientSender(Socket socket) {
+    public ClientSenderThread(Socket socket) {
         try {
             output_stream = new DataOutputStream(socket.getOutputStream());
             sendQueue = new LinkedList<>();
@@ -22,6 +22,7 @@ public class ClientSender extends Thread {
 
     public void send(byte[] bytes) throws IOException {
         output_stream.write(bytes);
+        output_stream.flush();
     }
 
     public synchronized void addSendQueue(byte[] bytes) {
@@ -41,7 +42,9 @@ public class ClientSender extends Thread {
         while(true){
             if(!isSendQueueEmpty()) {
                 try {
-                    send(removeSendQueue());
+                    byte[] data_to_send = removeSendQueue();
+                    //System.out.println("[client ~ sender] Sending Data with Hash: " + Hash.SHA1FromBytes(data_to_send));
+                    send(data_to_send);
                 } catch (IOException e) {
                     break;
                 }

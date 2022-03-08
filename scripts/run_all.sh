@@ -1,6 +1,6 @@
 #! /bin/bash
 
-USAGE_MSG="USAGE: ./run_all.sh -m <clean|run> -n <num_nodes> -p <server_port> -r <messaging_rate>"
+USAGE_MSG="USAGE: ./run_all.sh -m <clean|run|ssh-check> -n <num_nodes> -p <server_port> -r <messaging_rate>"
 usage() { echo ${USAGE_MSG} 1>&2; exit 1; }
 
 while getopts ":m:n:p:r:" o; do
@@ -51,7 +51,8 @@ if [[ $COMMAND = "run" ]]; then
 
     PROJ_DIR=$(pwd)
     echo "PROJ DIR: ${PROJ_DIR}"
-    BASE_CMD="cd ${PROJ_DIR} && sh ./scripts/run.sh"
+    BASE_CLIENT_CMD="cd ${PROJ_DIR} && sh ./scripts/run_client.sh"
+    BASE_SERVER_CMD="cd ${PROJ_DIR} && sh ./scripts/run_server.sh"
 
     readarray -t machines < ./scripts/machines.txt
     SERVER=${machines[0]}
@@ -60,17 +61,20 @@ if [[ $COMMAND = "run" ]]; then
     echo -e "$SERVER\n$CLIENTS" > scripts/current_machines.txt
 
 
-    sleep 1s #pls remove this
-
     # start server
     window=0
     tmux rename-window -t $session_name:$window 'server'
-    SERVER_CMD="${BASE_CMD} -t server"
+
+    THREAD_POOL_SIZE=10
+    BATCH_TIME=20
+    BATCH_SIZE=20
+    SERVER_CMD="${BASE_SERVER_CMD} -p ${SERVER_PORT} -t ${THREAD_POOL_SIZE} -s ${BATCH_SIZE} -b ${BATCH_TIME}"
+
     tmux send-keys -t $session:$window "ssh $SERVER" C-m
     tmux send-keys -t $session:$window "${SERVER_CMD}" C-m
     echo "Running Server on: ${SERVER}"
 
-    CLIENT_CMD="${BASE_CMD} -h ${SERVER} -p ${SERVER_PORT} -r ${MESSAGING_RATE} -t client"
+    CLIENT_CMD="${BASE_CLIENT_CMD} -h ${SERVER} -p ${SERVER_PORT} -r ${MESSAGING_RATE}"
     let "window+=1"
     for machine in ${CLIENTS[@]}; do
         echo "starting client on ${machine}..."
@@ -85,9 +89,20 @@ if [[ $COMMAND = "run" ]]; then
             tmux send-keys -t "${SELECTED_PANE}" "clear;${CLIENT_CMD}" C-m
         let "window+=1" 
     done
+    tmux select-window -t "$session_name:0"
     tmux a
     exit 0
 elif [[ $COMMAND = "clean" ]]; then
     echo "killing tmux session $session_name"
+    rm scripts/current_machines.txt
     $KILL_SESSION_CMD
+elif [[ $COMMAND = "ssh-check" ]]; then
+    readarray -t machines < ./scripts/machines.txt
+    for computer in ${machines[@]}; do
+        #echo Trying "$computer" 
+        timeout 5 ssh -o PasswordAuthentication=no "$computer" /bin/true
+        if [ $? != 0 ];then
+            echo "$computer is not ssh-able"
+        fi
+    done
 fi

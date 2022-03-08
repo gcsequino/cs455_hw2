@@ -16,3 +16,5 @@ gradle-app.setting
 # Ignore Gradle build output directory
 build
 app/bin
+
+current_machines.txt
