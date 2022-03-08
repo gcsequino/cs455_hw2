@@ -1,16 +1,18 @@
 package scaling.server;
 
-import java.util.concurrent.BlockingQueue;
+import java.io.IOException;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import scaling.utils.DataUnit;
 import scaling.utils.Hash;
+import scaling.utils.ReadWriteUtils;
 import scaling.utils.WorkUnit;
 
 public class WorkerThread extends Thread {
-    private BlockingQueue<WorkUnit> readyQueue;
+    private ConcurrentLinkedQueue<WorkUnit> readyQueue;
     private int numWorkUnitsProcessed;
 
-    public WorkerThread(BlockingQueue<WorkUnit> readyQueue) {
+    public WorkerThread(ConcurrentLinkedQueue<WorkUnit> readyQueue) {
         this.readyQueue = readyQueue;
         numWorkUnitsProcessed = 0;
     }
@@ -18,18 +20,22 @@ public class WorkerThread extends Thread {
     @Override
     public void run() {
         while(true) {
-            try {
-                work(readyQueue.take());
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+            if(!readyQueue.isEmpty()) {
+                work(readyQueue.poll());
             }
-            System.out.printf("%s processed %d work units\n", Thread.currentThread().getName(), numWorkUnitsProcessed);
         }
     }
 
     private void work(WorkUnit workUnit) {
-        for(DataUnit data : workUnit.getWorkQueue()) {
-            Hash.SHA1FromBytes(data.data);
+        for(DataUnit dataUnit : workUnit.getWorkQueue()) {
+            String hash = Hash.SHA1FromBytes(dataUnit.data);
+            try {
+                //System.out.printf("[server ~ %s] sending hash back to client at %s\n", Thread.currentThread().getName(), dataUnit.client_info);
+                ReadWriteUtils.writeString(hash, dataUnit.client_info.socket);
+            } catch (IOException e) {
+                System.out.printf("[server ~ %s] error writing data to %s\n", Thread.currentThread().getName(), dataUnit.client_info);
+                e.printStackTrace();
+            }
         }
         numWorkUnitsProcessed++;
     }

@@ -102,20 +102,6 @@ public class ServerReceiverThread extends Thread {
             else{
                 byte[] data_bytes = data.array();
                 addToWorkUnit(data_bytes, client_info);
-                String data_hash = Hash.SHA1FromBytes(data_bytes);
-                //System.out.printf("Read data with hash [length: %s]%s from client\n", data_hash.length(), data_hash, client_info);
-
-                // REMOVE ME -- Writing back to client for testing purposes 
-                try{
-                    //System.out.printf("Writing data with hash %s back to client\n\n", data_hash, client_info); 
-                    ReadWriteUtils.writeString(data_hash, client_socket);
-                    // System.out.printf("Finished writing data with hash %s back to client\n\n", data_hash, client_info); 
-                    // System.out.flush();
-                } catch(IOException ioe){
-                    System.out.println("[server ~ receiver_thread] error writing data to " + client_info);
-                    System.out.println("[server ~ receiver_thread] Deregistering " + client_info + " from the server.");
-                    key.cancel();
-                }
             }
         }catch(IOException ioe){
             System.out.println("[server ~ receiver_thread] error reading data from " + client_info);
@@ -137,7 +123,7 @@ public class ServerReceiverThread extends Thread {
                         registerClient();
                     }else if(key.isReadable()){
                         ClientInfo info = (ClientInfo) key.attachment();
-                        System.out.println("[server ~ receiver_thread] Received data from: " + info);
+                        //System.out.println("[server ~ receiver_thread] Received data from: " + info);
                         System.out.flush();
                         readData(key, info);
                     }

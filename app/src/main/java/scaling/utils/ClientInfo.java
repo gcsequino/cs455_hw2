@@ -3,9 +3,9 @@ package scaling.utils;
 import java.nio.channels.SocketChannel;
 
 public class ClientInfo {
-    public String host_name;
-    public Integer port;
-    public SocketChannel socket;
+    public final String host_name;
+    public final Integer port;
+    public final SocketChannel socket;
 
     public ClientInfo(String host_name, Integer port, SocketChannel socket){
         this.host_name = host_name;

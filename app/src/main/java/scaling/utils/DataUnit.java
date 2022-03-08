@@ -2,7 +2,7 @@ package scaling.utils;
 
 public class DataUnit {
     public final byte[] data;
-    ClientInfo client_info;
+    public final ClientInfo client_info;
 
     public DataUnit(byte[] data, ClientInfo client_info) {
         this.data = data;

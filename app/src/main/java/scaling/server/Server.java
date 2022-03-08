@@ -1,14 +1,20 @@
 package scaling.server;
 
-import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import scaling.utils.WorkUnit;
 
 public class Server {
-    Queue<WorkUnit> ready_queue;
-    public Server(){
-        ready_queue = new ConcurrentLinkedQueue();
+    ConcurrentLinkedQueue<WorkUnit> ready_queue;
+    ServerReceiverThread receiver;
+
+    public Server(int port, int batch_size, int thread_pool_size){
+        ready_queue = new ConcurrentLinkedQueue<>();
+
+        receiver = new ServerReceiverThread(this, port, batch_size);
+        receiver.start();
+
+        startThreadPool(thread_pool_size);
     }
 
     public boolean addToReadyQueue(WorkUnit work){
@@ -30,8 +36,13 @@ public class Server {
         System.out.println("Got server batch-size: " + batch_size);
         System.out.println("Got server batch-time: " + batch_time_in_seconds);
 
-        Server me = new Server();
-        ServerReceiverThread receiver = new ServerReceiverThread(me, port, batch_size);
-        receiver.start();
+        new Server(port, batch_size, thread_pool_size);
+    }
+
+    private void startThreadPool(int thread_pool_size) {
+        for(int i  = 0; i < thread_pool_size; i++) {
+            WorkerThread worker = new WorkerThread(ready_queue);
+            worker.start();
+        }
     }
 }
