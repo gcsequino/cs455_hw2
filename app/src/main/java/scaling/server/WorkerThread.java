@@ -1,7 +1,7 @@
 package scaling.server;
 
 import java.io.IOException;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import scaling.utils.DataUnit;
 import scaling.utils.Hash;
@@ -9,10 +9,10 @@ import scaling.utils.ReadWriteUtils;
 import scaling.utils.WorkUnit;
 
 public class WorkerThread extends Thread {
-    private ConcurrentLinkedQueue<WorkUnit> readyQueue;
+    private LinkedBlockingQueue<WorkUnit> readyQueue;
     private int numWorkUnitsProcessed;
 
-    public WorkerThread(ConcurrentLinkedQueue<WorkUnit> readyQueue) {
+    public WorkerThread(LinkedBlockingQueue<WorkUnit> readyQueue) {
         this.readyQueue = readyQueue;
         numWorkUnitsProcessed = 0;
     }
@@ -21,7 +21,11 @@ public class WorkerThread extends Thread {
     public void run() {
         while(true) {
             if(!readyQueue.isEmpty()) {
-                work(readyQueue.poll());
+                try {
+                    work(readyQueue.take());
+                } catch (InterruptedException e) {  
+                    e.printStackTrace();
+                }
             }
         }
     }

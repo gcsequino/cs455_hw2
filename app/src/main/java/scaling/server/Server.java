@@ -1,15 +1,15 @@
 package scaling.server;
 
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import scaling.utils.WorkUnit;
 
 public class Server {
-    ConcurrentLinkedQueue<WorkUnit> ready_queue;
+    LinkedBlockingQueue<WorkUnit> ready_queue;
     ServerReceiverThread receiver;
 
     public Server(int port, int batch_size, int thread_pool_size){
-        ready_queue = new ConcurrentLinkedQueue<>();
+        ready_queue = new LinkedBlockingQueue<>();
 
         receiver = new ServerReceiverThread(this, port, batch_size);
         receiver.start();

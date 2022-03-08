@@ -76,8 +76,6 @@ public class ServerReceiverThread extends Thread {
         } catch(IOException ioe){
             System.out.println("[server ~ receiver_thread] ERROR - failed to initiate new client conneciton.");
         }
-        
-
     }
 
     private void addToWorkUnit(byte[] data, ClientInfo client_info){
