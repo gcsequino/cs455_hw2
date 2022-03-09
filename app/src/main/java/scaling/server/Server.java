@@ -1,5 +1,6 @@
 package scaling.server;
 
+import java.util.Timer;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -23,14 +24,8 @@ public class Server {
 
         startThreadPool(thread_pool_size);
 
-        Runnable statsPrinter = new Runnable() {
-            public void run() {
-                printStats();
-            }
-        };
-
-        ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
-        executor.scheduleAtFixedRate(statsPrinter, 0, 5, TimeUnit.SECONDS); // CHANGE TO 20 SECONDS BEFORE SUBMITTING
+        Timer t = new Timer();
+        t.scheduleAtFixedRate(new Statistics(msgs_processed), 0, 20000);
     }
 
     public boolean addToReadyQueue(WorkUnit work){
@@ -60,16 +55,5 @@ public class Server {
             WorkerThread worker = new WorkerThread(ready_queue, msgs_processed);
             worker.start();
         }
-    }
-
-    private void printStats() {
-        int totalMessages = 0;
-        for(String client : msgs_processed.keySet()) {
-            AtomicInteger msgs_for_this_port = msgs_processed.get(client);
-            System.out.printf("Processed %d messages for client %s\n", msgs_for_this_port.get(), client);
-            totalMessages += msgs_for_this_port.get();
-            msgs_for_this_port.set(0);
-        }
-        System.out.printf("%d total messages processed in the last 20 seconds.\n", totalMessages);
     }
 }
