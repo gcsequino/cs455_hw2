@@ -12,9 +12,9 @@ import scaling.utils.WorkUnit;
 
 public class WorkerThread extends Thread {
     private LinkedBlockingQueue<WorkUnit> readyQueue;
-    ConcurrentHashMap<Integer, AtomicInteger> sharedMsgsProcessed;
+    ConcurrentHashMap<String, AtomicInteger> sharedMsgsProcessed;
 
-    public WorkerThread(LinkedBlockingQueue<WorkUnit> readyQueue, ConcurrentHashMap<Integer, AtomicInteger> sharedMsgsProcessed) {
+    public WorkerThread(LinkedBlockingQueue<WorkUnit> readyQueue, ConcurrentHashMap<String, AtomicInteger> sharedMsgsProcessed) {
         this.readyQueue = readyQueue;
         this.sharedMsgsProcessed = sharedMsgsProcessed;
     }
@@ -42,7 +42,7 @@ public class WorkerThread extends Thread {
                 System.out.printf("[server ~ %s] error writing data to %s\n", Thread.currentThread().getName(), dataUnit.client_info);
                 e.printStackTrace();
             }
-            sharedMsgsProcessed.get(dataUnit.client_info.port).getAndIncrement();
+            sharedMsgsProcessed.get(dataUnit.client_info.toString()).getAndIncrement();
         }
     }
 }

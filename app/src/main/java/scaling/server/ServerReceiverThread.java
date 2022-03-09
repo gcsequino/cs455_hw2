@@ -30,11 +30,11 @@ public class ServerReceiverThread extends Thread {
     private Integer batch_size;
     private Server server;
 
-    private ConcurrentHashMap<Integer, AtomicInteger> msgs_processed;
+    private ConcurrentHashMap<String, AtomicInteger> msgs_processed;
 
     private Integer port;
     
-    public ServerReceiverThread(Server s, int port, int batch_size, ConcurrentHashMap<Integer, AtomicInteger> msgs_processed){
+    public ServerReceiverThread(Server s, int port, int batch_size, ConcurrentHashMap<String, AtomicInteger> msgs_processed){
         this.port = port;
         clients = new ArrayList<>();
         this.server = s;
@@ -75,7 +75,7 @@ public class ServerReceiverThread extends Thread {
               Integer client_port = address.getPort();
               client_info = new ClientInfo(client_host_name, client_port, client_socket);
               clients.add(client_info);
-              msgs_processed.put(client_info.port, new AtomicInteger(0));
+              msgs_processed.put(client_info.toString(), new AtomicInteger(0));
             }
             client_key.attach(client_info); //attach the ClientInfo to this socket.
             System.out.println("[server ~ receiver_thread] new client registered -> " + client_info.toString());

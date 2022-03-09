@@ -12,7 +12,7 @@ import scaling.utils.WorkUnit;
 public class Server {
     LinkedBlockingQueue<WorkUnit> ready_queue;
     ServerReceiverThread receiver;
-    ConcurrentHashMap<Integer, AtomicInteger> msgs_processed;
+    ConcurrentHashMap<String, AtomicInteger> msgs_processed;
 
     public Server(int port, int batch_size, int thread_pool_size){
         ready_queue = new LinkedBlockingQueue<>();
@@ -64,9 +64,9 @@ public class Server {
 
     private void printStats() {
         int totalMessages = 0;
-        for(Integer port : msgs_processed.keySet()) {
-            AtomicInteger msgs_for_this_port = msgs_processed.get(port);
-            System.out.printf("Processed %d messages for client on port %d\n", msgs_for_this_port.get(), port);
+        for(String client : msgs_processed.keySet()) {
+            AtomicInteger msgs_for_this_port = msgs_processed.get(client);
+            System.out.printf("Processed %d messages for client %s\n", msgs_for_this_port.get(), client);
             totalMessages += msgs_for_this_port.get();
             msgs_for_this_port.set(0);
         }
