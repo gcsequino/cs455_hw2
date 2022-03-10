@@ -57,17 +57,18 @@ if [[ $COMMAND = "run" ]]; then
     readarray -t machines < ./scripts/machines.txt
     SERVER=${machines[0]}
     CLIENTS=${machines[@]:1:NUM_CLIENTS}
+    CLIENTS=(${CLIENTS[*]})
 
     echo -e "$SERVER\n$CLIENTS" > scripts/current_machines.txt
 
 
     # start server
     window=0
-    tmux rename-window -t $session_name:$window 'server'
+    tmux rename-window -t $session_name:$window 'server-${SERVER}'
 
-    THREAD_POOL_SIZE=10
+    THREAD_POOL_SIZE=16
     BATCH_TIME=20
-    BATCH_SIZE=20
+    BATCH_SIZE=200
     SERVER_CMD="${BASE_SERVER_CMD} -p ${SERVER_PORT} -t ${THREAD_POOL_SIZE} -s ${BATCH_SIZE} -b ${BATCH_TIME}"
 
     tmux send-keys -t $session:$window "ssh $SERVER" C-m
@@ -75,9 +76,14 @@ if [[ $COMMAND = "run" ]]; then
     echo "Running Server on: ${SERVER}"
 
     CLIENT_CMD="${BASE_CLIENT_CMD} -h ${SERVER} -p ${SERVER_PORT} -r ${MESSAGING_RATE}"
+
+    CLIENTS_LEN=${#CLIENTS[@]}
+    echo "num clients: $CLIENTS_LEN"
     let "window+=1"
-    for machine in ${CLIENTS[@]}; do
-        echo "starting client on ${machine}..."
+    for(( i=1; i<=$NUM_CLIENTS; ++i)); do
+
+        machine=${CLIENTS[$((i%CLIENTS_LEN))]}
+        echo "starting client $i on ${machine}..."
         if [ $window = 1 ]; then
             tmux split-window -h
             SELECTED_PANE="$session:0.1"
