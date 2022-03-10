@@ -1,14 +1,31 @@
 package scaling.server;
 
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.Timer;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import scaling.utils.WorkUnit;
 
 public class Server {
-    Queue<WorkUnit> ready_queue;
-    public Server(){
-        ready_queue = new ConcurrentLinkedQueue();
+    private LinkedBlockingQueue<WorkUnit> ready_queue;
+    private ServerReceiverThread receiver;
+    private ConcurrentHashMap<String, AtomicInteger> msgs_processed;
+    
+    private final int statsInterval = 20;
+
+
+    public Server(int port, int batch_size, int thread_pool_size){
+        ready_queue = new LinkedBlockingQueue<>();
+        msgs_processed = new ConcurrentHashMap<>();
+
+        receiver = new ServerReceiverThread(this, port, batch_size, msgs_processed);
+        receiver.start();
+
+        startThreadPool(thread_pool_size);
+
+        Timer t = new Timer();
+        t.scheduleAtFixedRate(new Statistics(msgs_processed, statsInterval), 0, statsInterval * 1000);
     }
 
     public boolean addToReadyQueue(WorkUnit work){
@@ -30,8 +47,13 @@ public class Server {
         System.out.println("Got server batch-size: " + batch_size);
         System.out.println("Got server batch-time: " + batch_time_in_seconds);
 
-        Server me = new Server();
-        ServerReceiverThread receiver = new ServerReceiverThread(me, port, batch_size);
-        receiver.start();
+        new Server(port, batch_size, thread_pool_size);
+    }
+
+    private void startThreadPool(int thread_pool_size) {
+        for(int i  = 0; i < thread_pool_size; i++) {
+            WorkerThread worker = new WorkerThread(ready_queue, msgs_processed);
+            worker.start();
+        }
     }
 }

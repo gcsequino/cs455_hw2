@@ -11,6 +11,8 @@ import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import scaling.utils.ClientInfo;
 import scaling.utils.DataUnit;
@@ -28,14 +30,17 @@ public class ServerReceiverThread extends Thread {
     private Integer batch_size;
     private Server server;
 
+    private ConcurrentHashMap<String, AtomicInteger> msgs_processed;
+
     private Integer port;
     
-    public ServerReceiverThread(Server s, int port, int batch_size){
+    public ServerReceiverThread(Server s, int port, int batch_size, ConcurrentHashMap<String, AtomicInteger> msgs_processed){
         this.port = port;
         clients = new ArrayList<>();
         this.server = s;
         this.current_work_unit = new WorkUnit(batch_size);
         this.batch_size = batch_size;
+        this.msgs_processed = msgs_processed;
         try{
             selector = Selector.open();
             System.out.println("[server ~ receiver_thread] Opened Selector");
@@ -70,14 +75,13 @@ public class ServerReceiverThread extends Thread {
               Integer client_port = address.getPort();
               client_info = new ClientInfo(client_host_name, client_port, client_socket);
               clients.add(client_info);
+              msgs_processed.put(client_info.toString(), new AtomicInteger(0));
             }
             client_key.attach(client_info); //attach the ClientInfo to this socket.
             System.out.println("[server ~ receiver_thread] new client registered -> " + client_info.toString());
         } catch(IOException ioe){
             System.out.println("[server ~ receiver_thread] ERROR - failed to initiate new client conneciton.");
         }
-        
-
     }
 
     private void addToWorkUnit(byte[] data, ClientInfo client_info){
@@ -102,20 +106,6 @@ public class ServerReceiverThread extends Thread {
             else{
                 byte[] data_bytes = data.array();
                 addToWorkUnit(data_bytes, client_info);
-                String data_hash = Hash.SHA1FromBytes(data_bytes);
-                //System.out.printf("Read data with hash [length: %s]%s from client\n", data_hash.length(), data_hash, client_info);
-
-                // REMOVE ME -- Writing back to client for testing purposes 
-                try{
-                    //System.out.printf("Writing data with hash %s back to client\n\n", data_hash, client_info); 
-                    ReadWriteUtils.writeString(data_hash, client_socket);
-                    // System.out.printf("Finished writing data with hash %s back to client\n\n", data_hash, client_info); 
-                    // System.out.flush();
-                } catch(IOException ioe){
-                    System.out.println("[server ~ receiver_thread] error writing data to " + client_info);
-                    System.out.println("[server ~ receiver_thread] Deregistering " + client_info + " from the server.");
-                    key.cancel();
-                }
             }
         }catch(IOException ioe){
             System.out.println("[server ~ receiver_thread] error reading data from " + client_info);
@@ -137,7 +127,7 @@ public class ServerReceiverThread extends Thread {
                         registerClient();
                     }else if(key.isReadable()){
                         ClientInfo info = (ClientInfo) key.attachment();
-                        System.out.println("[server ~ receiver_thread] Received data from: " + info);
+                        //System.out.println("[server ~ receiver_thread] Received data from: " + info);
                         System.out.flush();
                         readData(key, info);
                     }
