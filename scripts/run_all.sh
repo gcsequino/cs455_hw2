@@ -66,9 +66,9 @@ if [[ $COMMAND = "run" ]]; then
     window=0
     tmux rename-window -t $session_name:$window 'server-${SERVER}'
 
-    THREAD_POOL_SIZE=16
+    THREAD_POOL_SIZE=10
     BATCH_TIME=20
-    BATCH_SIZE=200
+    BATCH_SIZE=20
     SERVER_CMD="${BASE_SERVER_CMD} -p ${SERVER_PORT} -t ${THREAD_POOL_SIZE} -s ${BATCH_SIZE} -b ${BATCH_TIME}"
 
     tmux send-keys -t $session:$window "ssh $SERVER" C-m
