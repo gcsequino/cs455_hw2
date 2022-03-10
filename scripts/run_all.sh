@@ -1,9 +1,27 @@
 #! /bin/bash
 
-USAGE_MSG="USAGE: ./run_all.sh -m <clean|run|ssh-check> -n <num_nodes> -p <server_port> -r <messaging_rate>"
-usage() { echo ${USAGE_MSG} 1>&2; exit 1; }
+USAGE_MSG="USAGE: ./run_all.sh \n
+            REQUIRED- \n
+            \t Mode: -m <clean|run|ssh-check> \n
+            \t Port: -p <server_port> \n
+            OPTIONAL- \n
+            \t Number of clients: -n <num_nodes> (default = 100) \n
+            \t Client messaging rate: -r <messaging_rate> (default = 1) \n
+            \t Server thread count: -d <thread_pool_size> (default = 10) \n
+            \t Server batch time: -t <batch_time> (default = 20) \n
+            \t Server batch size: -s <batch_size> (default = 20) \n"
+usage() { echo -e ${USAGE_MSG} 1>&2; exit 1; }
 
-while getopts ":m:n:p:r:" o; do
+# Client Defaults
+NUM_CLIENTS=100
+MESSAGING_RATE=1
+
+# Server Defaults
+THREAD_POOL_SIZE=10
+BATCH_TIME=20
+BATCH_SIZE=20
+
+while getopts ":m:n:p:r:d:t:s:" o; do
     case "${o}" in
         m)
             MODE=${OPTARG}
@@ -17,6 +35,15 @@ while getopts ":m:n:p:r:" o; do
         r)
             MESSAGING_RATE=${OPTARG}
             ;;
+        d)
+            THREAD_POOL_SIZE=${OPTARG}
+            ;;
+        t)
+            BATCH_TIME=${OPTARG}
+            ;;
+        s)
+            BATCH_SIZE=${OPTARG}
+            ;;
         *)
             usage
             ;;
@@ -25,10 +52,8 @@ done
 
 if [ -z "${MODE}" ]; then
     usage
-elif [ "${MODE}" == "run" ]; then
-    if ([ -z "${NUM_CLIENTS}" ] || [ -z ${SERVER_PORT} ] || [ -z "${MESSAGING_RATE}" ]); then
-        usage
-    fi
+elif ([ "${MODE}" == 'run' ] && [ -z ${SERVER_PORT} ]); then
+    usage
 fi
 
 COMMAND=$MODE
@@ -66,9 +91,6 @@ if [[ $COMMAND = "run" ]]; then
     window=0
     tmux rename-window -t $session_name:$window "server-${SERVER}"
 
-    THREAD_POOL_SIZE=10
-    BATCH_TIME=20
-    BATCH_SIZE=20
     SERVER_CMD="${BASE_SERVER_CMD} -p ${SERVER_PORT} -t ${THREAD_POOL_SIZE} -s ${BATCH_SIZE} -b ${BATCH_TIME}"
 
     tmux send-keys -t $session:$window "ssh $SERVER" C-m
@@ -111,4 +133,5 @@ elif [[ $COMMAND = "ssh-check" ]]; then
             echo "$computer is not ssh-able"
         fi
     done
+    echo "ssh check complete"
 fi
