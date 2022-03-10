@@ -2,18 +2,18 @@ package scaling.server;
 
 import java.util.Timer;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import scaling.utils.WorkUnit;
 
 public class Server {
-    LinkedBlockingQueue<WorkUnit> ready_queue;
-    ServerReceiverThread receiver;
-    ConcurrentHashMap<String, AtomicInteger> msgs_processed;
+    private LinkedBlockingQueue<WorkUnit> ready_queue;
+    private ServerReceiverThread receiver;
+    private ConcurrentHashMap<String, AtomicInteger> msgs_processed;
+    
+    private final int statsInterval = 20;
+
 
     public Server(int port, int batch_size, int thread_pool_size){
         ready_queue = new LinkedBlockingQueue<>();
@@ -25,7 +25,7 @@ public class Server {
         startThreadPool(thread_pool_size);
 
         Timer t = new Timer();
-        t.scheduleAtFixedRate(new Statistics(msgs_processed), 0, 20000);
+        t.scheduleAtFixedRate(new Statistics(msgs_processed, statsInterval), 0, statsInterval * 1000);
     }
 
     public boolean addToReadyQueue(WorkUnit work){
