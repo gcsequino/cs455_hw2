@@ -64,7 +64,7 @@ if [[ $COMMAND = "run" ]]; then
 
     # start server
     window=0
-    tmux rename-window -t $session_name:$window 'server-${SERVER}'
+    tmux rename-window -t $session_name:$window "server-${SERVER}"
 
     THREAD_POOL_SIZE=10
     BATCH_TIME=20
