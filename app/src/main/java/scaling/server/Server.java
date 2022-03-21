@@ -15,11 +15,11 @@ public class Server {
     private final int statsInterval = 20;
 
 
-    public Server(int port, int batch_size, int thread_pool_size){
+    public Server(int port, int batch_size, int batch_time_in_seconds, int thread_pool_size){
         ready_queue = new LinkedBlockingQueue<>();
         msgs_processed = new ConcurrentHashMap<>();
 
-        receiver = new ServerReceiverThread(this, port, batch_size, msgs_processed);
+        receiver = new ServerReceiverThread(this, port, batch_size, batch_time_in_seconds, msgs_processed);
         receiver.start();
 
         startThreadPool(thread_pool_size);
@@ -47,7 +47,7 @@ public class Server {
         System.out.println("Got server batch-size: " + batch_size);
         System.out.println("Got server batch-time: " + batch_time_in_seconds);
 
-        new Server(port, batch_size, thread_pool_size);
+        new Server(port, batch_size, batch_time_in_seconds, thread_pool_size);
     }
 
     private void startThreadPool(int thread_pool_size) {
