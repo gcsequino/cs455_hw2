@@ -63,7 +63,7 @@ public class Statistics extends TimerTask {
             stdDev += Math.pow(d - mean, 2);
         }
 
-        return stdDev;
+        return Math.sqrt(stdDev / values.size());
     }
 
     private String getTimeStamp() {
