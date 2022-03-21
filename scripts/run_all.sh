@@ -6,7 +6,7 @@ USAGE_MSG="USAGE: ./run_all.sh \n
             \t Port: -p <server_port> \n
             OPTIONAL- \n
             \t Number of clients: -n <num_nodes> (default = 100) \n
-            \t Client messaging rate: -r <messaging_rate> (default = 1) \n
+            \t Client messaging rate: -r <messaging_rate> (default = 2) \n
             \t Server thread count: -d <thread_pool_size> (default = 10) \n
             \t Server batch time: -t <batch_time> (default = 20) \n
             \t Server batch size: -s <batch_size> (default = 20) \n"
@@ -14,7 +14,7 @@ usage() { echo -e ${USAGE_MSG} 1>&2; exit 1; }
 
 # Client Defaults
 NUM_CLIENTS=100
-MESSAGING_RATE=1
+MESSAGING_RATE=2
 
 # Server Defaults
 THREAD_POOL_SIZE=10
