@@ -120,11 +120,12 @@ public class ServerReceiverThread extends Thread {
     }
     public void run(){
         last_time_in_nanoseconds = System.nanoTime();
-        Long batch_time_in_nanoseconds =  new Long(batch_time_in_seconds*(int) 1e9);
+        Double batch_time_in_ns = batch_time_in_seconds*1e9;
+        Long batch_time_in_nanoseconds =  batch_time_in_ns.longValue();
         while(true) {
             try{
-                if(System.nanoTime() - last_time_in_nanoseconds >= batch_time_in_nanoseconds){
-                    //System.out.println("[server ~ reciever] Batch Time expired moving unit with.");    
+                if((System.nanoTime() - last_time_in_nanoseconds) >= batch_time_in_nanoseconds){
+                    System.out.println("[server ~ reciever] Batch Time expired moving unit.");    
                     moveToReadyQueue(current_work_unit);
                 }
                 if (selector.selectNow() == 0){
