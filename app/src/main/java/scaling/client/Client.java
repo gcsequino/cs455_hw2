@@ -75,9 +75,10 @@ public class Client {
     private InetAddress attemptResolveHost(String host) {
         InetAddress server_host = null;
         int attempts = 0;
+        int MAX_ATTEMPTS = 29;
         do {
             server_host = resolveHost(host);
-            if(server_host == null && attempts > 4) {
+            if(server_host == null && attempts > MAX_ATTEMPTS) {
                 System.out.println("[client ~ main] server unavailable, exiting");
                 System.exit(1);
             }
