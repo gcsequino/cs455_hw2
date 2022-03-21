@@ -124,7 +124,7 @@ public class ServerReceiverThread extends Thread {
         while(true) {
             try{
                 if(System.nanoTime() - last_time_in_nanoseconds >= batch_time_in_nanoseconds){
-                    System.out.println("[server ~ reciever] Batch Time expired moving unit with.");    
+                    //System.out.println("[server ~ reciever] Batch Time expired moving unit with.");    
                     moveToReadyQueue(current_work_unit);
                 }
                 if (selector.selectNow() == 0){
