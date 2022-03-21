@@ -28,19 +28,22 @@ public class ServerReceiverThread extends Thread {
     private List<ClientInfo> clients;
     private WorkUnit current_work_unit;
     private Integer batch_size;
+    private Integer batch_time_in_seconds;
+    private Long last_time_in_nanoseconds;
     private Server server;
 
     private ConcurrentHashMap<String, AtomicInteger> msgs_processed;
 
     private Integer port;
     
-    public ServerReceiverThread(Server s, int port, int batch_size, ConcurrentHashMap<String, AtomicInteger> msgs_processed){
+    public ServerReceiverThread(Server s, int port, int batch_size, int batch_time_in_seconds, ConcurrentHashMap<String, AtomicInteger> msgs_processed){
         this.port = port;
         clients = new ArrayList<>();
         this.server = s;
         this.current_work_unit = new WorkUnit(batch_size);
         this.batch_size = batch_size;
         this.msgs_processed = msgs_processed;
+        this.batch_time_in_seconds = batch_time_in_seconds;
         try{
             selector = Selector.open();
             System.out.println("[server ~ receiver_thread] Opened Selector");
@@ -88,9 +91,13 @@ public class ServerReceiverThread extends Thread {
         DataUnit current = new DataUnit(data, client_info);
         current_work_unit.addDataUnit(current);
         if(current_work_unit.isFull()){
-            server.addToReadyQueue(current_work_unit);
-            this.current_work_unit = new WorkUnit(batch_size); //creating new WorkUnit
+            moveToReadyQueue(current_work_unit);   
         }
+    }
+    private void moveToReadyQueue(WorkUnit work_unit){
+        server.addToReadyQueue(work_unit);
+        this.current_work_unit = new WorkUnit(batch_size); //creating new WorkUnit
+        this.last_time_in_nanoseconds = System.nanoTime(); //reset time
     }
     private void readData(SelectionKey key, ClientInfo client_info){
         ByteBuffer data = ByteBuffer.allocate(RandomBytes.BUFFER_SIZE); //allocate buffer for 8KB
@@ -111,10 +118,15 @@ public class ServerReceiverThread extends Thread {
             System.out.println("[server ~ receiver_thread] error reading data from " + client_info);
         }
     }
-
     public void run(){
+        last_time_in_nanoseconds = System.nanoTime();
+        Long batch_time_in_nanoseconds =  new Long(batch_time_in_seconds*(int) 1e9);
         while(true) {
             try{
+                if(System.nanoTime() - last_time_in_nanoseconds >= batch_time_in_nanoseconds){
+                    System.out.println("[server ~ reciever] Batch Time expired moving unit with.");    
+                    moveToReadyQueue(current_work_unit);
+                }
                 if (selector.selectNow() == 0){
                     //no channels have made an action
                     continue; 
@@ -132,6 +144,7 @@ public class ServerReceiverThread extends Thread {
                         readData(key, info);
                     }
                     iter.remove(); //remove key so that we don't try to do this event again.
+
                 }
             }catch(IOException ioe){
                 System.out.println("[server ~ receiver_thread] ERROR - reading from selector");
