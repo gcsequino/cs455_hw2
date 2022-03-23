@@ -43,9 +43,10 @@ public class Client {
     private Socket attemptConnectHost(InetAddress server_host, int server_port) {
         Socket socket = null;
         int attempts = 0;
+        int MAX_ATTEMPTS = 29;
         do {
             socket = connectHost(server_host, server_port);
-            if(socket == null && attempts > 4) {
+            if(socket == null && attempts > MAX_ATTEMPTS) {
                 System.out.println("[client ~ main] server unavailable, exiting");
                 System.exit(1);
             }
