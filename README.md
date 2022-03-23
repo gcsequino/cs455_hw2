@@ -27,3 +27,7 @@ run `./scripts/run_all.sh -m ssh-check`
 # Running the code to show that batch-time is working
 
 run `scripts/run_all.sh -m run -p 5000 -n 10 -r 1 -d 10 -t 2 -s 200`
+
+# package code
+
+run `scripts/package.sh`
